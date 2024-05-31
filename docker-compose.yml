@@ -1,0 +1,23 @@
+services:
+  db: &db
+    image: ghcr.io/tigerbeetle/tigerbeetle:latest
+    container_name: tigerbeetle
+    command: start --addresses=0.0.0.0:3000 --cache-grid=256MiB /data/0_0.tigerbeetle
+    network_mode: host
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - data:/data
+
+  provision:
+    <<: *db
+    command: format --cluster=0 --replica=0 --replica-count=1 /data/0_0.tigerbeetle
+
+  repl:
+    <<: *db
+    depends_on:
+      - db
+    command: repl --cluster=0 --addresses=3000
+
+volumes:
+  data:
